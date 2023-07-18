@@ -1,0 +1,175 @@
+; extensions.conf - the Asterisk dial plan
+;
+; Static extension configuration file, used by
+; the pbx_config module. This is where you configure all your
+; inbound and outbound calls in Asterisk.
+;
+; This configuration file is reloaded
+; - With the "dialplan reload" command in the CLI
+; - With the "reload" command (that reloads everything) in the CLI
+
+;Legenda
+;;;;;;;;
+; exten = se refera la o extensie sau numar de telefon 
+; s = start
+; n = next, evitarea numarului de ordine al prioritatilor
+; t = timeout extension in context
+; T = timeout on absolute timeout
+; same = pentru evitarea folosirii exten
+
+[general]
+static=yes
+writeprotect=n
+ 
+[incoming];se refera la setarile si configuratiile utilizate pentru a gestiona a          ;pelurile prmite pe serverul asterisk
+include => internal       ;apeluri interne sau dispozitive conectate la acelasi
+                          ;server asterisk
+include => public_category3
+
+
+exten => s,1,Answer() ;functie pentru a prelua un apel si a stabil o conexiune c                      ;u apelantul
+exten => s,2,Background(vm-enter-num-to-call);redarea unui fisier audio
+
+;asteapta introducerea unei extensii 20 de secunde
+exten => s,n,WaitExten(20)
+
+
+;context pentru apelurile comune dintre sip si iax
+[internal] 
+
+;functie 
+exten => 611,1, Answer()
+   same => 2, Playback(demo-echotest)  ;redarea unui fisier audio 
+   same => 3, Echo()  ;testarea nivelului de ecou in timpul apelurilor 
+   same => 4, Playback(demo-echodone)
+   same => 5, Hangup()   ;incheierea unui apel in curs
+
+;numar de telefon sip
+;initializeaza un apel catre extensia 1000 utilizand protocolul sip si asteapta
+;timp de 20 de secunde un raspuns 
+exten => 1000,1,Dial(SIP/1000,20)
+
+;IAX , numar de telefon 2000
+exten => 2000,1,Dial(IAX2/2000,20)
+
+;SIP , numar de telefon 1145
+exten => 1145,1,Dial(SIP/1145,20)
+
+;SIP, numar de telefon 2145
+exten => 2145,1,Dial(SIP/2145,20)
+
+;IAX, numar de telefon 3145
+exten => 3145,1,Dial(IAX2/3145,20)
+
+;IAX, numar de telefon 4145
+exten => 4145,1,Dial(IAX2/4145,20)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;contine functiile SIP si restrictioneaza accesul 
+[sip_context]
+
+;include toate apelurile continute de incoming 
+include => incoming
+
+exten => 123,1,NoOp(123) ;Nu face nimic
+same => n,Ringing() ;semnaleaza initializarea apelului
+same => n,Wait(6) ;asteapta 6 secunde
+same => n,Set(CHANNEL(musicclass)=support) ;seteaza clasa de muzica support
+same => n,Answer()
+same => n,MusicOnHold(support,10) ;permite redarea unei melodii pentru apelantii
+                                  ;in asteptare
+same => n,Playback(tt-monkeys)    
+;same => n,Playtones(congestion)  ;redarea de tonuri telefonice specifice
+;same => n,Wait(15)
+same => n,Hangup()
+
+;idem 123
+exten => 321,1,NoOp(321)
+same => n,Ringing()
+same => n,Wait(6)
+same => n,Set(CHANNEL(musicclass)=support)
+same => n,Answer()
+same => n,MusicOnHold(ringing,10)
+same => n,Playback(tt-monkeys)
+same => n,Playtones(congestion)
+same => n,Wait(15)
+same => n,Hangup()
+
+ ;in cazul in care functiile urmatoare sunt apelate de un numar sip, se va reda
+ ;un mesaj de invaliditate 
+exten => 456,1,NoOp(invalid)
+same => n,Answer()
+same => n,Playback(invalid)
+same => n,Hangup()
+
+
+exten => 654,1,NoOp(invalid)
+same => n,Answer()
+same => n,Playback(invalid)
+same => n,Hangup()
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;
+;contine functiile IAX si restrictioneaza accesul
+[iax2_context]
+include => incoming
+
+;utilitatile acestor functii sunt  explicate mai sus
+exten => 456,1,NoOp(456)
+same => n,Ringing()
+same => n,Wait(6)
+same => n,Set(CHANNEL(musicclass)=support)
+same => n,Answer()
+same => n,MusicOnHold(support,10)
+same => n,Wait(10)
+same => n,Playback(tt-monkeys)
+same => n,Hangup()
+
+exten => 654,1,NoOp(654)
+same => n,Ringing()
+same => n,Wait(6)
+same => n,Answer()
+same => n,WaitExten(15)
+ 
+
+;in cazul apasarii tastei 1, sare la contextul jump
+; extensia 1
+;prioritatea 1
+exten => 1,1,Goto(jump,1,1)
+
+;dupa scurgerea celor 15 secunde va fi redat mesajul de timeout
+exten => t,1,NoOp(timeout)
+same => n,Playback(goodbye)
+same => n,Hangup()
+
+;la apasarea unei taste gresite, se va reda mesajul de invaliditate
+exten => i,1,NoOp(tasta gresita)
+same => n,Playback(invalid)
+same => n,GoTo(654,1)
+
+;in cazul in care functiile se vor apela de catre un numar IAX, se va reda un 
+;mesaj de invaliditate
+exten => 123,1,NoOp(invalid)
+same => n,Answer()
+same => n,Playback(invalid)
+same => n,Hangup()
+
+exten => 321,1,NoOp(invalid)
+same => n,Answer()
+same => n,Playback(invalid)
+same => n,Hangup()
+
+;context pentru tratarea extensiilor functiei 654 
+[jump]
+;cazul apasarii tastei unu
+exten => 1,1,NoOp(jump)
+same => n, Playback(hello-world)
+same => n, Hangup()
+
+[public_category3]
+
+exten => 4001,1,AgentCallbackLogin(,,${CALLERIDNUM}@internal)
+
+exten => 4002,1,AgentCallbackLogin(,,1)
+
+exten => 4000,1,Queue(markq)

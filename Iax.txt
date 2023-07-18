@@ -1,0 +1,48 @@
+
+; Inter-Asterisk eXchange driver definition
+
+;Legenda
+;;;;;;;;
+;type= tipul de entitate sip
+;host= pentru a specifica tipul adresei IP
+;secret= parola
+;context= specifica tastarea in contextul specificat dupa egal
+;dtmfmode= modul de transmitere al tonurilor dtmf 
+;qualify= este util in situatiile in care se doreste monitorizarea starii
+;         entitatii sip
+
+
+
+[general]
+[general]
+disallow=all	
+allow=ulaw
+allow=alaw
+allow=gsm
+allow=ilbc		
+
+[2000]
+type=friend
+host=dynamic
+secret=1234
+context=internal
+qualify=yes
+dtmfmode=rfc2833 ;standard dezvoltat de IETF care defineste metoda de
+                 ;transmitere a tonurilor dtmf prin intermediul pachetelor 
+                 ;rtp
+
+[3145]
+type=friend
+host=dynamic
+secret=1234
+context=iax2_context
+qualify=yes
+dtmfmode=rfc2833
+
+[4145]
+type=friend
+host=dynamic
+secret=1234
+context=iax2_context
+qualify=yes
+dtmfmode=rfc2833

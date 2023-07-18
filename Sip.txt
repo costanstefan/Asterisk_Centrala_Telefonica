@@ -1,0 +1,34 @@
+;
+; Music on hold class definitions
+; This is using the new 1.2 config file format, and will not work with 1.0
+; based Asterisk systems
+;
+#include musiconhold_custom.conf
+#include musiconhold_additional.conf
+
+;Legenda
+;[clasa_de_muzica]
+;mode= specifica modul de redare al muzicii inasteptare
+;directory= loculdin memorie in care se afla fisierele audio
+
+
+
+[default]
+mode=files ;utilizeaza fisiere audio predefinite
+directory=moh
+
+[support]
+mode=files
+directory=support
+
+[ghici]
+mode=files
+directory=ghici
+
+[mai_incearca]
+mode=files
+directory=mai_incearca
+
+[expirat]
+mode=files
+directory=expirat
